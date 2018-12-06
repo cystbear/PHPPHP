@@ -137,11 +137,11 @@ class Compiler {
 
     protected function compileTopLevelFunctions(array $ast) {
         foreach ($ast as $node) {
-            if ($node instanceof \PHPParser_Node_Stmt_Function) {
+            if ($node instanceof \PhpParser\Node\Stmt\Function_) {
                 $funcData = $this->compileFunction($node);
                 $this->functionStore->register($node->namespacedName, $funcData);
                 $node->alreadyCompiled = true;
-            } elseif ($node instanceof \PHPParser_Node_Stmt_Namespace) {
+            } elseif ($node instanceof \PhpParser\Node\Stmt\Namespace_) {
                 $this->compileTopLevelFunctions($node->stmts);
             }
         }
@@ -153,7 +153,7 @@ class Compiler {
         }
     }
 
-    protected function compileNode(\PHPParser_Node $node, Zval\Ptr $returnContext = null) {
+    protected function compileNode(\PhpParser\Node $node, Zval\Ptr $returnContext = null) {
         $nodeType = $node->getType();
         if (isset($this->operators[$nodeType])) {
             call_user_func_array(
@@ -173,7 +173,7 @@ class Compiler {
         call_user_func(array($this, $methodName), $node, $returnContext);
     }
 
-    protected function compileChild(\PHPParser_Node $node, $childName, $returnContext = null) {
+    protected function compileChild(\PhpParser\Node $node, $childName, $returnContext = null) {
         $childNode = $node->$childName;
         if (is_null($childNode)) {
             return;
@@ -220,12 +220,12 @@ class Compiler {
         $prevFetchWrite = $this->fetchWrite;
         $this->fetchWrite = true;
 
-        if ($node->var instanceof \PHPParser_Node_Expr_PropertyFetch) {
+        if ($node->var instanceof \PhpParser\Node\Expr\PropertyFetch) {
             $var = $node->var;
             $property = Zval::ptrFactory();
             $this->compileChild($var, 'var', $op1);
             $this->compileChild($var, 'name', $property);
-        } else if ($node->var instanceof \PHPParser_Node_Expr_ArrayDimFetch) {
+        } else if ($node->var instanceof \PhpParser\Node\Expr\ArrayDimFetch) {
             $var = $node->var;
             $this->compileChild($var, 'var', $op1);
             if ($var->dim) {
@@ -272,7 +272,7 @@ class Compiler {
     }
 
     public function compile_Expr_Assign($node, $returnContext = null) {
-        if ($node->var instanceof \PHPParser_Node_Expr_ArrayDimFetch) {
+        if ($node->var instanceof \PhpParser\Node\Expr\ArrayDimFetch) {
             $this->compileBinaryAssignOp($node, $returnContext, 'PHPPHP\Engine\OpLines\AssignDim', 'var', 'expr');
         } else {
             $this->compileBinaryAssignOp($node, $returnContext, 'PHPPHP\Engine\OpLines\Assign', 'var', 'expr');
@@ -499,7 +499,7 @@ class Compiler {
             return 1;
         }
 
-        if (!$node->num instanceof \PHPParser_Node_Scalar_LNumber || $node->num->value < 1) {
+        if (!$node->num instanceof \PhpParser\Node\Scalar\LNumber || $node->num->value < 1) {
             throw new CompileException("'$type' operator accepts only positive numbers", $node->getLine());
         }
 
@@ -574,7 +574,7 @@ class Compiler {
         $this->opArray->endLoop($continueJumpPos);
     }
 
-    protected function compile_Stmt_Function(\PHPParser_Node_Stmt_Function $node) {
+    protected function compile_Stmt_Function(\PhpParser\Node\Stmt\Function_ $node) {
         if ($node->alreadyCompiled) return;
 
         $funcData = $this->compileFunction($node);
@@ -807,7 +807,7 @@ class Compiler {
 
         foreach ($node->params as $i => $param) {
             $type = null;
-            if ($param->type && $param->type instanceof \PHPParser_Node) {
+            if ($param->type && $param->type instanceof \PhpParser\Node) {
                 $tmpZval = Zval::ptrFactory();
                 $this->compileChild($param, 'type', $tmpZval);
                 $type = $tmpZval->toString();
@@ -839,7 +839,7 @@ class Compiler {
         return $funcData;
     }
 
-    protected function makeZvalFromNodeStrict(\PHPParser_Node $node) {
+    protected function makeZvalFromNodeStrict(\PhpParser\Node $node) {
         $zval = $this->makeZvalFromNode($node);
 
         if (null === $zval) {
@@ -849,13 +849,13 @@ class Compiler {
         return $zval;
     }
 
-    protected function makeZvalFromNode(\PHPParser_Node $node) {
-        if ($node instanceof \PHPParser_Node_Scalar_LNumber
-            || $node instanceof \PHPParser_Node_Scalar_DNumber
-            || $node instanceof \PHPParser_Node_Scalar_String
+    protected function makeZvalFromNode(\PhpParser\Node $node) {
+        if ($node instanceof \PhpParser\Node\Scalar\LNumber
+            || $node instanceof \PhpParser\Node\Scalar\DNumber
+            || $node instanceof \PhpParser\Node\Scalar\String_
         ) {
             return Zval::factory($node->value);
-        } elseif ($node instanceof \PHPParser_Node_Expr_Array) {
+        } elseif ($node instanceof \PhpParser\Node\Expr\Array_) {
             $array = array();
             foreach ($node->items as $item) {
                 if ($item->byRef) {
@@ -865,7 +865,7 @@ class Compiler {
                 $array[$this->makeZvalFromNode($item->key)] = $this->makeZvalFromNode($item->value);
             }
             return $array;
-        } elseif ($node instanceof \PHPParser_Node_Scalar_FileConst /* ... */) {
+        } elseif ($node instanceof \PhpParser\Node\Scalar\FileConst /* ... */) {
             /* TODO */
             return null;
         } else {

@@ -2,7 +2,7 @@
 
 namespace PHPPHP\Engine\OpLines;
 
-use PHPParser_Node_Expr_Include as IncludeNode;
+use PhpParser\Node\Expr\Include_ as IncludeNode;
 
 class IncludeOp extends \PHPPHP\Engine\OpLine {
 

@@ -116,7 +116,7 @@ class Executor {
     protected function parseCode($code, $file) {
         try {
             return $this->parser->parse($code);
-        } catch (\PHPParser_Error $e) {
+        } catch (\PhpParser\Error $e) {
             $message = 'syntax error, ' . str_replace('Unexpected', 'unexpected', $e->getMessage());
             $line = $e->getRawLine();
             $this->errorHandler->handle($this, E_PARSE, $message, $file, $line);

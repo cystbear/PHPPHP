@@ -2,20 +2,15 @@
 
 namespace PHPPHP\Engine;
 
-use PHPParser_Parser;
-use PHPParser_Lexer;
-use PHPParser_NodeTraverser;
-use PHPParser_NodeVisitor_NameResolver;
-
 class Parser {
 
     protected $parser;
     protected $traverser;
     
     public function __construct() {
-        $this->parser = new PHPParser_Parser(new PHPParser_Lexer);
-        $this->traverser = new PHPParser_NodeTraverser;
-        $this->traverser->addVisitor(new PHPParser_NodeVisitor_NameResolver);
+        $this->parser = new \PhpParser\Parser\Php7(new \PhpParser\Lexer);
+        $this->traverser = new \PhpParser\NodeTraverser;
+        $this->traverser->addVisitor(new \PhpParser\NodeVisitor\NameResolver);
     }
     
     public function parse($code) {
